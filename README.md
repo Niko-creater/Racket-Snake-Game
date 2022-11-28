@@ -1,5 +1,8 @@
 # Racket-Snake-Game
 
+# Group members
+* Gabrieli Manuel - Peiyu Liu - Uchmanowicz Bartosz - Bower Taylor
+
 # MILESTONE 1
 
 * FINISHED
