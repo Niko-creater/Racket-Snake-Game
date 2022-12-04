@@ -14,7 +14,14 @@
     * Add design recipe of the existed function.
     * Add several test case to make sure all the functions work as what we design.
 
+# MILESTONE 2
+    * Fix the map problem (snake could cross the edge)
+    * Add color property of food and snake.
+    * Add function that snake will change the color after eat food
+    * Food list created
+    * Score added
+
 * TODO:
-    * Make data structure of game more complex(add snake color, food type)
-    * Fix the map problem
-    * Add score part.
+    * Add food type
+    * Add start game page
+    * Add game over page
