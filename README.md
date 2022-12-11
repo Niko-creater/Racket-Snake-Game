@@ -6,7 +6,7 @@
 
 # MILESTONE 1
 
-* FINISHED
+* DONE:
     * Implement move eat function with simplifed data structure.
     * Implement the render function of the game.
     * Implement handle-key function to control the game.
@@ -15,13 +15,16 @@
     * Add several test case to make sure all the functions work as what we design.
 
 # MILESTONE 2
+
+* DONE:
     * Fix the map problem (snake could cross the edge)
     * Add color property of food and snake.
     * Add function that snake will change the color after eat food
     * Food list created
     * Score added
 
-* TODO:
+# After MILESTONE 2
+* DONE:
     * Add food type
     * Add start game page
     * Add game over page
