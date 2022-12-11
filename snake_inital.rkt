@@ -190,7 +190,12 @@
 
 (check-expect (s_state-pos (move_down sk_1)) (list (make-posn 120 100) (make-posn 140 100) (make-posn 160 100) (make-posn 180 100) (make-posn 180 120)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Render
+
+; draw_snake: List<Posn> Color -> Image
+; return a image that paint the snake with color on the game canvas
+; header: (define (draw_snake '() (make-color 0 0 0)))
 
 (define (draw_snake los col)
   (local ((define s_head (rectangle 20 20 "solid" "red"))
@@ -198,6 +203,10 @@
     (cond
      [(null? (cdr los)) (underlay/offset BACKGROUND (posn-x (car los)) (posn-y (car los))  s_head)]
      [else (underlay/offset (draw_snake (cdr los) col) (posn-x (car los)) (posn-y (car los))  s_part)])))
+
+; draw_food: Image List<F_state> -> Image
+; return the image according to the list of food and snake painted canvas
+; header: (define (draw_food BACKGROUND '()))
 
 (define (draw_food cav los)
   (local ((define f_n (rectangle 20 20 "solid" (f_state-col (car los))))
@@ -215,14 +224,30 @@
             [(equal? -1 (f_state-ty (car los))) (underlay/offset (draw_food cav (cdr los)) (posn-x (f_state-pos (car los))) (posn-y (f_state-pos (car los))) f_p)]
             [(equal? 1 (f_state-ty (car los))) (underlay/offset (draw_food cav (cdr los)) (posn-x (f_state-pos (car los))) (posn-y (f_state-pos (car los))) f_d)])]))) 
 
+; draw_score: Image Number -> Image
+; paint the score of the game on the canvas
+; header; (define (draw_score BACKGROUND 0))
 
 (define (draw_score cav score)
   (underlay/offset cav -20 -450 (text (string-append "Score:  " (number->string (- score 5))) 40 "indigo")))
 
+; render: W_state -> Image
+; return the image based the current w_state
+; header: (define (render i))
+
 (define (render w)
   (draw_score (draw_food (draw_snake (s_state-pos (w_state-snake w)) (s_state-col (w_state-snake w))) (w_state-food w)) (length (s_state-pos (w_state-snake w)))))
- 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key
+
+; handle-key: W_state String -> W_state
+; Interpretation: handles mouse events; that
+;   is, it updates the state according to the input’s mouse events.
+;                  w: move up
+;                  a: move left
+;                  s: move down
+;                  d: move right
 
 (define (handle-key w key-event)
   (cond
@@ -242,12 +267,19 @@
 
 ;; Collision
 
+; detect: Posn List<F_state> -> List<F_state>
+; return a new f_state list which convert a f_state that have same position with input head to a boolean value.
+; header: (define (detect (make-posn 0 0) fd_1))
 (define (detect head los)
   (map (lambda (x) (if (equal? head (f_state-pos x)) #t x)) los))
 
 (check-expect (detect (make-posn 180 100) (list fd_1 fd_2)) (list fd_1 fd_2))
 (check-expect (car (detect (make-posn 200 200) (list fd_1 fd_2))) #t)
 (check-expect (car (cdr (detect (make-posn 300 300) (list fd_1 fd_2)))) #t)
+
+; det?: List<F_state> -> Boolean
+; return ture if list has a true value.
+; header: (define (det? ()'))
 
 (define (det? los)
   (cond
@@ -259,12 +291,20 @@
 (check-expect (det? (detect (make-posn 200 200) (list fd_1 fd_2))) #t)
 (check-expect (det? (detect (make-posn 300 300) (list fd_1 fd_2))) #t)
 
+; eat?: W_state -> Boolean
+; return ture if snake eat a food
+; header: (define (eat? i))
 
 (define (eat? w)
   (det? (detect (list-ref (s_state-pos (w_state-snake w)) (- (length (s_state-pos (w_state-snake w))) 1)) (w_state-food w))))
 
 (check-expect (eat? i) #f)
 
+;; Three eat function
+
+; eat-normal: W_state -> W_state
+; append a new part on the snake body
+; header: (define (eat-normal i))
 (define (eat-normal w)
   (local ((define last_element (list-ref (s_state-pos (w_state-snake w)) (- (length (s_state-pos (w_state-snake w))) 1)))
           (define right_to_head (append (s_state-pos (w_state-snake w)) (list (make-posn (+ gap (posn-x last_element)) (posn-y last_element)))))
@@ -279,7 +319,9 @@
     [(equal? "up" (s_state-dir (w_state-snake w))) (w_state (s_state up_to_head "up" gap (f_state-col (get_by_value (w_state-food w) last_element))) (update_food (w_state-food w)))]
     [(equal? "down" (s_state-dir (w_state-snake w))) (w_state (s_state down_to_head "down" gap (f_state-col (get_by_value (w_state-food w) last_element))) (update_food (w_state-food w)))])))
 
-
+; eat-poison: W_state -> W_state
+; pop the head part of the snake body
+; header: (define (eat-poison i))
 (define (eat-poison w)
   (local ((define last_element (list-ref (s_state-pos (w_state-snake w)) (- (length (s_state-pos (w_state-snake w))) 1)))
           (define pop_head (remove last_element (s_state-pos (w_state-snake w))))
@@ -287,7 +329,9 @@
           )
   (w_state (s_state pop_head (s_state-dir (w_state-snake w)) gap (f_state-col (get_by_value (w_state-food w) last_element))) (update_food (w_state-food w)))))
 
-
+; eat-double: W_state -> W_state
+; append two new parts on the snake body
+; header: (define (eat-double i))
 (define (eat-double w)
   (local ((define last_element (list-ref (s_state-pos (w_state-snake w)) (- (length (s_state-pos (w_state-snake w))) 1)))
           (define right_to_head (append (s_state-pos (w_state-snake w)) (list (make-posn (+ gap (posn-x last_element)) (posn-y last_element)) (make-posn (+ (* 2 gap) (posn-x last_element)) (posn-y last_element)))))
@@ -304,6 +348,10 @@
 (test)
 
 ;; Tick
+
+; tick: W_state -> W_state
+; tick he world state
+; header: (define (tick w))
 
 (define (tick w)
   (local ((define last_element (list-ref (s_state-pos (w_state-snake w)) (- (length (s_state-pos (w_state-snake w))) 1))))
@@ -323,7 +371,9 @@
     [(equal? h (car los)) #t]
     [else (exist? (cdr los) h)]))
   
-
+; quit?: W_state -> Boolean
+; return false when the snake have collision with its body
+; header: (define (quit? w))
   
 (define (quit? w)
   (local ((define last_element (list-ref (s_state-pos (w_state-snake w)) (- (length (s_state-pos (w_state-snake w))) 1)))
