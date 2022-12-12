@@ -60,7 +60,7 @@
 (define speed 0.2)
 
 ; Game canvas
-(define canvas_w 1620)
+(define canvas_w 1020)
 (define canvas_h 820)
 (define BACKGROUND (empty-scene canvas_w canvas_h))
 
@@ -229,7 +229,7 @@
 ; header; (define (draw_score BACKGROUND 0))
 
 (define (draw_score cav score)
-  (underlay/offset cav -20 -450 (text (string-append "Score:  " (number->string (- score 5))) 40 "indigo")))
+  (underlay/offset cav -430 -370 (text (string-append "Score:  " (number->string (- score 5))) 30 "indigo")))
 
 ; render: W_state -> Image
 ; return the image based the current w_state
@@ -383,13 +383,81 @@
       [(colli? (w_state-snake w)) #t]
       [else #f])))
 
+(define STARTPAGE (empty-scene 500 1000 "green"))
 
-(define (play initial-state)
+
+(define (gameover w)
+  (local ((define LOSEPAGE (underlay/offset BACKGROUND 0 0
+                    (overlay/offset (text/font "GAME OVER" 40 "black" "Gill Sans" 'swiss 'normal 'bold #f)
+                                    0 50 (text/font
+                                          (string-append "Your Score is:  " (number->string (- (length (s_state-pos (w_state-snake w))) 5))) 30 "Green" "Gill Sans" 'swiss 'normal 'bold #f))))
+          (define WINPAGE (underlay/offset BACKGROUND 0 0
+                    (overlay/offset (text/font "You WIN!!!!!" 40 "black" "Gill Sans" 'swiss 'normal 'bold #f)
+                                    0 50 (text/font
+                                          (string-append "Your Score is:  " (number->string (- (length (s_state-pos (w_state-snake w))) 5))) 30 "Green" "Gill Sans" 'swiss 'normal 'bold #f)))))
+  (if (>= (length (s_state-pos (w_state-snake w))) 105) WINPAGE LOSEPAGE)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;Difficulty levels
+(define (play-easy initial-state)
 (big-bang initial-state
 [on-key handle-key]
-[on-tick tick speed]
+[on-tick tick 0.25]
 [to-draw render]
-[stop-when quit?]))
+[stop-when quit? gameover]))
 
-(play i)
+(define (play-medium initial-state)
+(big-bang initial-state
+[on-key handle-key]
+[on-tick tick 0.1]
+[to-draw render]
+[stop-when quit? gameover]))
+
+(define (play-hard initial-state)
+(big-bang initial-state
+[on-key handle-key]
+[on-tick tick 0.05]
+[to-draw render]
+[stop-when quit? gameover]))
+
+
+;Start screen
+(define (beginning w)
+  (underlay/offset (underlay/offset(underlay/offset (underlay/offset (underlay/offset (underlay/offset STARTPAGE
+                   0 -200 (rectangle 200 100 "solid" "black")) 0 -200 (text/font "EASY" 36 "Green" "Gill Sans" 'swiss 'normal 'bold #f))
+                   0 0 (underlay/offset (rectangle 200 100 "solid" "black") 0 0 (text/font "MEDIUM" 36 "Yellow" "Gill Sans" 'swiss 'normal 'bold #f)))
+                   0 200 (underlay/offset (rectangle 200 100 "solid" "black") 0 0 (text/font "HARD" 36 "Red" "Gill Sans" 'swiss 'normal 'bold #f)))
+                   0 -450 (text/font "SNAKE GAME" 36 "Dark Slate Gray" "Gill Sans" 'swiss 'normal 'bold #f))
+                   0 -350 (text/font "SELECT A DIFFICULTY" 36 "Dark Slate Gray" "Gill Sans" 'swiss 'normal 'bold #f)))
+
+;Mouse handler
+(define (handle-mouse ap x-mouse y-mouse mouse-event)
+  (cond 
+   [(and (and (> x-mouse 150) (< x-mouse 350)) (and (> y-mouse 250) (< y-mouse 350)) (string=? "button-down" mouse-event)) (play-easy i)]
+   [(and (and (> x-mouse 150) (< x-mouse 350)) (and (> y-mouse 450) (< y-mouse 550)) (string=? "button-down" mouse-event)) (play-medium i)]
+   [(and (and (> x-mouse 150) (< x-mouse 350)) (and (> y-mouse 650) (< y-mouse 750)) (string=? "button-down" mouse-event)) (play-hard i)]))
+   
+
+(define (start-game initial-state)
+(big-bang initial-state
+[to-draw beginning]
+[on-mouse handle-mouse]))
+;[stop-when quit?]
+
+(start-game i)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
